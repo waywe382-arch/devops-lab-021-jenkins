@@ -1,59 +1,75 @@
+
+
+
+
+
+
+
 pipeline {
     agent any
 
     options {
         timestamps()
-        disableConcurrentBuilds()
+    }
+
+    environment {
+        PYTHON = 'C:\\Users\\abina\\AppData\\Local\\Programs\\Python\\Python312\\python.exe'
     }
 
     stages {
+
         stage('Environment') {
             steps {
                 echo 'Starting Lab 021 Jenkins Pipeline'
-                sh 'whoami'
-                sh 'pwd'
-                sh 'python3 --version'
+
+                bat 'java -version'
+                bat 'git --version'
+                bat '"%PYTHON%" --version'
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Checking application'
-                sh 'python3 src/app.py'
+                echo 'Building Python application'
+
+                bat '"%PYTHON%" src\\app.py'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running automated tests'
-                sh 'python3 -m unittest discover -s tests -v'
+                echo 'Running Python unit tests'
+
+                bat '"%PYTHON%" -m unittest discover -s tests -v'
             }
         }
 
         stage('Package') {
             steps {
-                echo 'Creating build artifact'
-                sh '''
-                    mkdir -p dist
-                    tar -czf dist/lab-021-application.tar.gz \
-                        src tests README.md
-                    ls -lh dist/
-                '''
+                echo 'Creating application package'
+
+                bat 'if not exist dist mkdir dist'
+
+                bat 'tar -czf dist\\lab-021-application.tar.gz src tests README.md'
+
+                archiveArtifacts artifacts: 'dist/*.tar.gz',
+                                 fingerprint: true
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully'
+            echo 'Lab 021 Pipeline completed successfully!'
         }
 
         failure {
-            echo 'Pipeline failed. Review the console output.'
+            echo 'Pipeline failed. Check Console Output.'
         }
 
         always {
-            echo 'Pipeline execution finished'
+            echo 'Pipeline execution finished.'
         }
     }
 }
+
